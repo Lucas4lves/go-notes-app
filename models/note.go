@@ -1,11 +1,13 @@
 package models
 
+import "time"
+
 type Note struct {
 	ID        *int
 	Title     string
 	Content   string
-	CreatedAt *string
-	UpdatedAt *string
+	CreatedAt string
+	UpdatedAt string
 }
 
 func NewNote(title string, content string) *Note {
@@ -13,15 +15,19 @@ func NewNote(title string, content string) *Note {
 		ID:        nil,
 		Title:     title,
 		Content:   content,
-		CreatedAt: nil,
-		UpdatedAt: nil,
+		CreatedAt: "",
+		UpdatedAt: "",
 	}
 }
 
-func (n *Note) UpdateTitle(newTitle string) {
-	n.Title = newTitle
-}
+func (n *Note) Update(newTitle, newContent *string) {
+	if newTitle != nil {
+		n.Title = *newTitle
+	}
 
-func (n *Note) UpdateContent(newContent string) {
-	n.Content = newContent
+	if newContent != nil {
+		n.Content = *newContent
+	}
+
+	n.UpdatedAt = time.Now().Format(time.RFC3339)
 }

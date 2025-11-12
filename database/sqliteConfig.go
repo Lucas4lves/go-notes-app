@@ -20,7 +20,5 @@ func InitDatabase(path string) *sql.DB {
 		log.Fatal("Error:", err.Error())
 	}
 
-	defer db.Close()
-
 	return db
 }
