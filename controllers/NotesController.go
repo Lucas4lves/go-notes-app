@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -76,4 +77,31 @@ func (nc *NotesController) UpdateNote(ctx *gin.Context) {
 		"message": "Note updated successfully",
 	})
 
+}
+
+func (nc *NotesController) GetNoteById(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+
+	id, err := strconv.ParseInt(idStr, 10, 64)
+
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	data, err := nc.Service.GetById(id)
+
+	if err != nil {
+		log.Println(err.Error())
+		ctx.JSON(404, gin.H{
+			"status":  404,
+			"message": "Unable to find a resource with id ",
+		})
+
+		return
+	}
+
+	ctx.JSON(200, gin.H{
+		"status": 200,
+		"data":   data,
+	})
 }
