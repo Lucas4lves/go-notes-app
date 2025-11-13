@@ -3,6 +3,7 @@ package repositories
 import (
 	"database/sql"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Lucas4lves/go-notes-app/database"
@@ -19,13 +20,13 @@ func NewNoteRepository(driver *sql.DB) *NoteRepository {
 	}
 }
 
-func (ns *NoteRepository) Insert(note *models.Note) error {
+func (ns *NoteRepository) Insert(note *models.Note) (int64, error) {
 
 	tx, err := ns.Driver.Begin()
 
 	if err != nil {
 		log.Fatal("Error: ", err.Error())
-		return err
+		return 0, err
 	}
 
 	defer func() {
@@ -38,7 +39,7 @@ func (ns *NoteRepository) Insert(note *models.Note) error {
 
 	if err != nil {
 		log.Fatal("Error: ", err.Error())
-		return err
+		return 0, err
 	}
 
 	defer stmt.Close()
@@ -46,18 +47,44 @@ func (ns *NoteRepository) Insert(note *models.Note) error {
 	note.CreatedAt = time.Now().Format(time.RFC3339)
 	note.UpdatedAt = time.Now().Format(time.RFC3339)
 
-	_, err = stmt.Exec(note.Title, note.Content, note.CreatedAt, note.UpdatedAt)
+	res, err := stmt.Exec(note.Title, note.Content, note.CreatedAt, note.UpdatedAt)
 
 	if err != nil {
 		log.Fatal("Error: ", err.Error())
-		return err
+		return 0, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		log.Fatal("Error: ", err.Error())
-		return err
+		return 0, err
 	}
 
-	return nil
+	return res.LastInsertId()
+}
+
+func (nr *NoteRepository) Update(id int64, payload *models.NoteRequest) error {
+	queryComponents := []string{}
+	arguments := []interface{}{}
+
+	if payload.Title != nil {
+		queryComponents = append(queryComponents, "title = ?")
+		arguments = append(arguments, *payload.Title)
+	}
+
+	if payload.Content != nil {
+		queryComponents = append(queryComponents, "content = ?")
+		arguments = append(arguments, *payload.Content)
+	}
+
+	if len(queryComponents) == 0 {
+		return nil
+	}
+
+	query := "UPDATE notes SET " + strings.Join(queryComponents, ", ") + ", updated_at = ? WHERE id = ?"
+	arguments = append(arguments, time.Now().Format(time.RFC3339), id)
+
+	_, err := nr.Driver.Exec(query, arguments...)
+
+	return err
 }
