@@ -38,3 +38,15 @@ func (ns *NoteService) Update(id int64, n *models.NoteRequest) error {
 
 	return nil
 }
+
+func (ns *NoteService) GetById(id int64) (*models.Note, error) {
+
+	data, err := ns.Repo.SelectById(id)
+
+	if err != nil {
+		log.Println("Error: ", err.Error())
+		return nil, err
+	}
+
+	return data, nil
+}

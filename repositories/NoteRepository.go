@@ -88,3 +88,37 @@ func (nr *NoteRepository) Update(id int64, payload *models.NoteRequest) error {
 
 	return err
 }
+
+func (nr *NoteRepository) SelectById(id int64) (*models.Note, error) {
+	var data *models.Note = &models.Note{}
+
+	tx, err := nr.Driver.Begin()
+
+	if err != nil {
+		return nil, err
+	}
+
+	stmt, err := tx.Prepare("select * from notes")
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		err = rows.Scan(&data.ID, &data.Title, &data.Content, &data.CreatedAt, &data.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return data, nil
+
+}
