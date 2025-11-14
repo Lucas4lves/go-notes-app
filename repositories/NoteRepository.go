@@ -3,6 +3,7 @@ package repositories
 import (
 	"database/sql"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -89,40 +90,43 @@ func (nr *NoteRepository) Update(id int64, payload *models.NoteRequest) error {
 	return err
 }
 
-func (nr *NoteRepository) SelectById(id int64) ([]*models.Note, error) {
-	var data []*models.Note
-	var object *models.Note = &models.Note{}
-	tx, err := nr.Driver.Begin()
+func (nr *NoteRepository) SelectById(id int) (*models.Note, error) {
+
+	sql := "select * from notes where id = " + strconv.Itoa(id)
+
+	row := nr.Driver.QueryRow(sql)
+
+	var data *models.Note = &models.Note{}
+
+	err := row.Scan(&data.ID, &data.Title, &data.Content, &data.CreatedAt, &data.UpdatedAt)
 
 	if err != nil {
 		return nil, err
 	}
 
-	stmt, err := tx.Prepare("select * from notes where id = ?")
+	return data, nil
+}
 
-	if err != nil {
-		return nil, err
-	}
-
-	defer stmt.Close()
-
-	rows, err := stmt.Query(id)
+func (nr *NoteRepository) SelectAll() ([]*models.Note, error) {
+	rowsData := make([]*models.Note, 0)
+	sql := "select * from notes"
+	rows, err := nr.Driver.Query(sql)
 
 	if err != nil {
 		return nil, err
 	}
 
 	for rows.Next() {
-		err = rows.Scan(&object.ID, &object.Title, &object.Content, &object.CreatedAt, &object.UpdatedAt)
+		var rowData *models.Note = &models.Note{}
+
+		err := rows.Scan(&rowData.ID, &rowData.Title, &rowData.Content, &rowData.CreatedAt, &rowData.UpdatedAt)
+
 		if err != nil {
 			return nil, err
 		}
+
+		rowsData = append(rowsData, rowData)
 	}
 
-	tx.Commit()
-
-	data = append(data, object)
-
-	return data, nil
-
+	return rowsData, nil
 }

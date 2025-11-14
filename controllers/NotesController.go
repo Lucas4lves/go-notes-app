@@ -82,9 +82,7 @@ func (nc *NotesController) UpdateNote(ctx *gin.Context) {
 func (nc *NotesController) GetNoteById(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 
-	fmt.Println("ID:", idStr)
-
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	id, err := strconv.Atoi(idStr)
 
 	if err != nil {
 		log.Println(err.Error())
@@ -93,13 +91,31 @@ func (nc *NotesController) GetNoteById(ctx *gin.Context) {
 	data, err := nc.Service.GetById(id)
 
 	if err != nil {
-		log.Println(err.Error())
 		ctx.JSON(404, gin.H{
 			"status":  404,
 			"message": "Unable to find a resource with id ",
 		})
 
 		return
+	}
+
+	var dataArray []*models.Note
+	dataArray = append(dataArray, data)
+
+	ctx.JSON(200, gin.H{
+		"status": 200,
+		"data":   dataArray,
+	})
+}
+
+func (nc *NotesController) GetAllNotes(ctx *gin.Context) {
+	data, err := nc.Service.GetAll()
+
+	if err != nil {
+		ctx.JSON(500, gin.H{
+			"status": 500,
+			"error":  err.Error(),
+		})
 	}
 
 	ctx.JSON(200, gin.H{

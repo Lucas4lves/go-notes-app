@@ -24,6 +24,8 @@ func main() {
 	server.POST("/notes", depsContainer.NotesController.CreateNote)
 	server.PUT("/notes/:id", depsContainer.NotesController.UpdateNote)
 	server.GET("/notes/:id", depsContainer.NotesController.GetNoteById)
+	server.GET("/notes", depsContainer.NotesController.GetAllNotes)
+
 	defer db.Close()
 
 	server.Run()
