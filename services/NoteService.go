@@ -39,7 +39,7 @@ func (ns *NoteService) Update(id int64, n *models.NoteRequest) error {
 	return nil
 }
 
-func (ns *NoteService) GetById(id int64) (*models.Note, error) {
+func (ns *NoteService) GetById(id int64) ([]*models.Note, error) {
 
 	data, err := ns.Repo.SelectById(id)
 
