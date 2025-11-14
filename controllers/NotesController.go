@@ -82,6 +82,8 @@ func (nc *NotesController) UpdateNote(ctx *gin.Context) {
 func (nc *NotesController) GetNoteById(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 
+	fmt.Println("ID:", idStr)
+
 	id, err := strconv.ParseInt(idStr, 10, 64)
 
 	if err != nil {

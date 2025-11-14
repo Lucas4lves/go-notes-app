@@ -89,16 +89,16 @@ func (nr *NoteRepository) Update(id int64, payload *models.NoteRequest) error {
 	return err
 }
 
-func (nr *NoteRepository) SelectById(id int64) (*models.Note, error) {
-	var data *models.Note = &models.Note{}
-
+func (nr *NoteRepository) SelectById(id int64) ([]*models.Note, error) {
+	var data []*models.Note
+	var object *models.Note = &models.Note{}
 	tx, err := nr.Driver.Begin()
 
 	if err != nil {
 		return nil, err
 	}
 
-	stmt, err := tx.Prepare("select * from notes")
+	stmt, err := tx.Prepare("select * from notes where id = ?")
 
 	if err != nil {
 		return nil, err
@@ -106,18 +106,22 @@ func (nr *NoteRepository) SelectById(id int64) (*models.Note, error) {
 
 	defer stmt.Close()
 
-	rows, err := stmt.Query()
+	rows, err := stmt.Query(id)
 
 	if err != nil {
 		return nil, err
 	}
 
 	for rows.Next() {
-		err = rows.Scan(&data.ID, &data.Title, &data.Content, &data.CreatedAt, &data.UpdatedAt)
+		err = rows.Scan(&object.ID, &object.Title, &object.Content, &object.CreatedAt, &object.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
 	}
+
+	tx.Commit()
+
+	data = append(data, object)
 
 	return data, nil
 
